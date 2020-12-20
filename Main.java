@@ -37,49 +37,49 @@ public class Main {
         return graph;
     }
 
-    public static String chooseNeighborNodeAtRandom(MutableNetwork<String, String> graph, String node) {
+    public static String chooseNodeAtRandom(MutableNetwork<String, String> graph) {
         int i = 0;
-        String chosenNode = "";
-        int degreeNode = graph.degree(node);
+        String node = "";
+        Random random =  new Random();
+        int numberOfNodes = graph.nodes().size();
+        int randomNodeIndex = (random.nextInt(numberOfNodes));
+
+        for (Iterator<String> it = graph.nodes().iterator();
+             it.hasNext() && i <= randomNodeIndex;
+             i++, node = it.next());
+
+        return node;
+    }
+
+    public static String chooseNeighborAtRandom(MutableNetwork<String, String> graph, String node)
+    {
+        int i = 0;
+        int randomNeighborIndex = 0;
+        String chosenNeighborNode = "";
+        Random random = new Random();
         Set<String> neighbors = graph.adjacentNodes(node);
-        int chosenNodeIndex = (new Random()).nextInt(degreeNode);
+        Iterator<String> listOfNeighbors = neighbors.iterator();
 
-        Iterator<String> it = neighbors.iterator();
-        do {
-            i++;
-            chosenNode = it.next();
-        } while (it.hasNext() && i < chosenNodeIndex);
+        randomNeighborIndex = random.nextInt(neighbors.size());
 
-        return chosenNode;
+        for (;
+            listOfNeighbors.hasNext() && i <= randomNeighborIndex;
+            i++, chosenNeighborNode = listOfNeighbors.next());
+
+        return chosenNeighborNode;
     }
 
     public static Pair<String, String> chooseEdgeRandomly(MutableNetwork<String, String> graph) {
-        int i = 0;
-        Random seed = new Random();
-        Pair<String, String> edge = null;
-        String node1 = "", node2 = "";
-        int numberOfNodes = graph.nodes().size();
-        int node1Index = seed.nextInt(numberOfNodes - (1 + 1)) + 1;
-
-        for (Iterator<String> it = graph.nodes().iterator(); it.hasNext() && i < node1Index ; i++) {
-            node1 = it.next();
-        }
-        node2 = chooseNeighborNodeAtRandom(graph, node1);
-
-        edge = new Pair<String, String>(node1, node2);
+        String nodeU = chooseNodeAtRandom(graph);
+        String nodeV = chooseNeighborAtRandom(graph, nodeU);
+        Pair<String, String> edge = new Pair<String, String>(nodeU, nodeV);
         return edge;
     }
 
-
     public static void contractNodes(MutableNetwork<String, String> graph, String node1, String node2)
     {
-        if (!graph.hasEdgeConnecting(node1, node2)) {
-            System.out.println("No edge to contract between nodes (" + node1 + ", " + node2 + ")");
-            System.exit(255);
-        }
-
-        String newSuperNode = node1 + ", " + node2;
         String edgeToBeRemoved = "";
+        String newSuperNode = node1 + ", " + node2;
         for (String tmp : graph.edgesConnecting(node1, node2)) {
             edgeToBeRemoved = tmp;
             break;
