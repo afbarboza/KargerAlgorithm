@@ -1,13 +1,16 @@
 package com.learning;
 
 import com.google.common.graph.*;
+
+import java.security.SecureRandom;
+import java.security.Timestamp;
 import java.util.*;
 import javafx.util.Pair;
 
 import static com.learning.InputUtils.*;
 
 public class Main {
-    public static void buildNeighborhood(MutableNetwork<String, String> graph, ArrayList<String> adjacencyList) {
+    public static void buildNeighborhood(MutableNetwork<String, EdgeType> graph, ArrayList<String> adjacencyList) {
         String node = adjacencyList.get(0);
         graph.addNode(node);
 
@@ -15,14 +18,14 @@ public class Main {
             String currentNeighbor = adjacencyList.get(i);
             graph.addNode(currentNeighbor);
 
-            graph.addEdge(node, currentNeighbor, node + "<-->" + currentNeighbor);
-//            if (!graph.hasEdgeConnecting(node, currentNeighbor)) {
-//            }
+            if (!graph.hasEdgeConnecting(node, currentNeighbor)) {
+                graph.addEdge(node, currentNeighbor, new EdgeType(node, currentNeighbor));
+            }
         }
     }
 
-    public static MutableNetwork<String, String> buildGraph() {
-        MutableNetwork<String, String> graph = NetworkBuilder
+    public static MutableNetwork<String, EdgeType> buildGraph() {
+        MutableNetwork<String, EdgeType> graph = NetworkBuilder
                                                     .undirected()
                                                     .allowsParallelEdges(true)
                                                     .allowsSelfLoops(false)
@@ -37,10 +40,11 @@ public class Main {
         return graph;
     }
 
-    public static String chooseNodeAtRandom(MutableNetwork<String, String> graph) {
+    public static String chooseNodeAtRandom(MutableNetwork<String, EdgeType> graph) {
         int i = 0;
         String node = "";
-        Random random =  new Random();
+        SecureRandom random = new SecureRandom();
+        random.setSeed(System.currentTimeMillis());
         int numberOfNodes = graph.nodes().size();
         int randomNodeIndex = (random.nextInt(numberOfNodes));
 
@@ -51,12 +55,13 @@ public class Main {
         return node;
     }
 
-    public static String chooseNeighborAtRandom(MutableNetwork<String, String> graph, String node)
+    public static String chooseNeighborAtRandom(MutableNetwork<String, EdgeType> graph, String node)
     {
         int i = 0;
         int randomNeighborIndex = 0;
         String chosenNeighborNode = "";
-        Random random = new Random();
+        SecureRandom random = new SecureRandom();
+        random.setSeed(System.currentTimeMillis());
         Set<String> neighbors = graph.adjacentNodes(node);
         Iterator<String> listOfNeighbors = neighbors.iterator();
 
@@ -69,65 +74,80 @@ public class Main {
         return chosenNeighborNode;
     }
 
-    public static Pair<String, String> chooseEdgeRandomly(MutableNetwork<String, String> graph) {
+    public static EdgeType chooseEdgeRandomly(MutableNetwork<String, EdgeType> graph) {
         String nodeU = chooseNodeAtRandom(graph);
         String nodeV = chooseNeighborAtRandom(graph, nodeU);
-        Pair<String, String> edge = new Pair<String, String>(nodeU, nodeV);
-        return edge;
+        Set<EdgeType> edgesUV = graph.edgesConnecting(nodeU, nodeV);
+        return (new ArrayList<EdgeType>(edgesUV)).get(0);
     }
 
-    public static void contractNodes(MutableNetwork<String, String> graph, String node1, String node2)
+    public static void replaceIncidentEdges(MutableNetwork<String, EdgeType> graph, String superNode, String nodeV) {
+        Set<String> adjacentNodesToNodeV = new HashSet(graph.adjacentNodes(nodeV));
+        for (String neighborOfNodeV : adjacentNodesToNodeV) {
+            Set<EdgeType> parallelEdges = new HashSet<EdgeType>(graph.edgesConnecting(neighborOfNodeV, nodeV));
+            for (EdgeType edge : parallelEdges) {
+                graph.addEdge(superNode, neighborOfNodeV, new EdgeType(superNode, neighborOfNodeV));
+            }
+        }
+    }
+
+    public static void contractNodes(MutableNetwork<String, EdgeType> graph, String nodeU, String nodeV)
     {
-        String edgeToBeRemoved = "";
-        String newSuperNode = node1 + ", " + node2;
-        for (String tmp : graph.edgesConnecting(node1, node2)) {
-            edgeToBeRemoved = tmp;
-            break;
+        /* delete all edges between u and v */
+        Set<EdgeType> edgesUV = graph.edgesConnecting(nodeU, nodeV);
+        Set<EdgeType> edgesUVCopy = new HashSet<>(edgesUV);
+
+        for (EdgeType edge : edgesUVCopy) {
+            graph.removeEdge(edge);
         }
 
-        graph.addNode(newSuperNode);
-        Set<String> neighborsOfNode1 = graph.adjacentNodes(node1);
-        Set<String> neighborsOfNode2 = graph.adjacentNodes(node2);
-        Set<String> allNeighbors = new HashSet<>(neighborsOfNode1);
-        allNeighbors.addAll(neighborsOfNode2);
+        /* replace u and v with a new supernode uv */
+        String newSuperNodeUV = nodeU + ", " + nodeV;
+        graph.addNode(newSuperNodeUV);
 
-        for (String node : allNeighbors) {
-            graph.addEdge(newSuperNode, node, newSuperNode + "<-->" + node);
-        }
+        /* replace *all* edges incident to u or v with edges incident to supernode uv */
+        replaceIncidentEdges(graph, newSuperNodeUV, nodeV);
+        replaceIncidentEdges(graph, newSuperNodeUV, nodeU);
 
-        graph.removeEdge(edgeToBeRemoved);
-        graph.removeNode(node1);
-        graph.removeNode(node2);
+        /* replace u and v with a new supernode uv */
+        graph.removeNode(nodeU);
+        graph.removeNode(nodeV);
     }
 
-    public static int findMinimumCut(MutableNetwork<String, String> graph) {
+    public static int findMinimumCut(MutableNetwork<String, EdgeType> graph) {
         int minCut = 0;
         int numberOfNodes = graph.nodes().size();
         while (numberOfNodes > 2) {
             /* choose random edge (u, v) */
-            Pair<String, String> edge = chooseEdgeRandomly(graph);
+            EdgeType edge = chooseEdgeRandomly(graph);
 
             /* contract the nodes (u, v) */
-            contractNodes(graph, edge.getKey(), edge.getValue());
+            contractNodes(graph, edge.getNodeU(), edge.getNodeV());
 
             /* compute current size |V| */
             numberOfNodes = graph.nodes().size();
         }
-
-        /* count crossing edges between the left two supernodes */
-        for (String node : graph.nodes()) {
-            System.out.println(node);
-        }
-
-        return graph.edges().size();
+        minCut = graph.edges().size();
+        return minCut;
     }
 
     public static void main(String[] args) {
         int i = 0;
-        int minCut = 0;
-        initInputReader();
-        MutableNetwork<String, String> graph = buildGraph();
-        minCut = findMinimumCut(graph);
-        System.out.println(minCut);
+        int smallestCutFound = Integer.MAX_VALUE;
+
+        /* must run a sufficient number of times, considering that it is a randomized algorithm */
+        while (i < 50000) {
+            int minCut = 0;
+            initInputReader();
+            MutableNetwork<String, EdgeType> graph = buildGraph();
+            minCut = findMinimumCut(graph);
+            if (minCut < smallestCutFound)
+                smallestCutFound = minCut;
+
+            System.out.println(i + " >>>" + minCut);
+            i++;
+        }
+
+        System.out.println(smallestCutFound);
     }
 }
