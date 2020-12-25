@@ -16,3 +16,19 @@ The size of the cut above is 3, since there are three edges connecting ```S = {0
 
 ![Possible Cut](./output_graph.jpg?raw=true)
 
+# The Algorithm
+
+This implementation reads the `input.txt` file containing the nodes and edges. The first number in the i-th line represent the i-th node of the graph, and the following numbers in the i-th line represent all the nodes which node i is connected to. After reading the input and then building the graph data structure, the Karger's Algorithm works in the following way:
+
+```
+while (number_of_nodes > 2) {
+    /* choose random edge (u, v) */
+    edge = choose_random_edge(graph)
+    
+    /* contract the nodes connected by the edge chosen in the previous step */
+    contract_nodes(graph, edge)
+    
+    /* compute current size of set V */
+    number_of_nodes = number_of_nodes(graph)
+}
+```
