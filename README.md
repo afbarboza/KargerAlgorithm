@@ -8,11 +8,11 @@ Consider the given undirected graph below:
 
 The given graph ```G = (V, E)``` is such that ```V``` is the set of all nodes in the graph, ```V = {0, 1, 2, 3}``` ,  and ```E``` is the set of all edges connecting the nodes, ```E = {0-1, 0-2, 0-3, 1-3, 2-3}```. A **cut** in the given graph is defined by partitioning the set of nodes ```V``` into two subsets ```S``` and ```V - S```, implying that removing the edges connecting ```S``` and ```V - S```results in some disconnected graph. The **size** of the cut is the cardinality of the set of edges connecting ```S``` and ```V - S```.
 
-One possible way of partioning the input graph is grouping the nodes ```V = {0, 1, 2, 3}``` using the following partition: ```S = {0, 2}``` and ```V - S = {1, 3}```, resulting in the following **multigraph**:
+For example, one possible way of partioning the input graph is grouping the nodes ```V = {0, 1, 2, 3}``` using the following partition: ```S = {0, 2}``` and ```V - S = {1, 3}```, resulting in the following **multigraph**:
 
 ![Possible Cut](./possible_cut.jpg?raw=true)
 
-The size of the cut above is 3, since there are three edges connecting ```S = {0, 2}``` and ```V - S = {1, 3}```. The Karger's Algorithm try to determine the **minimum cut** possible for some input graph. For the input graph above, the minimum cut has size of 2:
+The size of the cut above is 3, since there are three edges connecting ```S = {0, 2}``` and ```V - S = {1, 3}```. The Karger's Algorithm try to determine the **global minimum cut** possible for some input graph. For the input graph above, the minimum cut has size of 2:
 
 ![Possible Cut](./output_graph.jpg?raw=true)
 
@@ -22,7 +22,7 @@ This implementation reads the `input.txt` file containing the nodes and edges. T
 
 ```
 while (number_of_nodes > 2) {
-    /* choose random edge (u, v) */
+    /* choose uniformly random edge (u, v) */
     edge = choose_random_edge(graph)
     
     /* contract the nodes connected by the edge chosen in the previous step */
@@ -32,3 +32,19 @@ while (number_of_nodes > 2) {
     number_of_nodes = number_of_nodes(graph)
 }
 ```
+# Implementation Details
+
+Since we are not worried about [how to implement graphs](https://www.geeksforgeeks.org/graph-and-its-representations/) but instead only interested in some operations over graphs, this implementation use [Mutable Networks](https://github.com/google/guava/wiki/GraphsExplained#network) from [Guava](https://github.com/google/guava/wiki) to work with multigraphs. Also, notice that Karger Algorithm is nested inside a main loop which looks like this:
+
+```
+while (i < 50000) {
+    currentCut = findMinimumCut(graph)
+    if (currentCut < smallestCut) {
+        smallestCut = currentCut
+    }
+}
+```
+
+While `50000` could look like some magical number, it is indeed necessary to increase the [probability of success](https://en.wikipedia.org/wiki/Karger%27s_algorithm#Success_probability_of_the_contraction_algorithm) of this randomized algorithm. For our input with n = 200 nodes, the number of executions to minimize the probability of not finding the minimum cut should be:
+
+![Possible Cut](./nbr_executions.gif?raw=true)
