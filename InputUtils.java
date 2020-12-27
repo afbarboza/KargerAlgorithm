@@ -9,7 +9,7 @@ import java.util.List;
 
 public class InputUtils {
     public static BufferedReader reader;
-    public static String FILE_PATH = "/home/alex/Documentos/learning/algorithms/contraction/input.txt";
+    public static String FILE_PATH = "input.txt";
 
     public static void initInputReader() {
         try {
