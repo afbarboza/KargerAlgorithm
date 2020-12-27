@@ -3,13 +3,14 @@ package com.learning;
 import com.google.common.graph.*;
 
 import java.security.SecureRandom;
-import java.security.Timestamp;
 import java.util.*;
-import javafx.util.Pair;
 
 import static com.learning.InputUtils.*;
 
 public class Main {
+
+    private static int NUMBER_ITERATIONS_ALGORITHM = 50000;
+
     public static void buildNeighborhood(MutableNetwork<String, EdgeType> graph, ArrayList<String> adjacencyList) {
         String node = adjacencyList.get(0);
         graph.addNode(node);
@@ -135,16 +136,16 @@ public class Main {
         int i = 0;
         int smallestCutFound = Integer.MAX_VALUE;
 
-        /* must run a sufficient number of times, considering that it is a randomized algorithm */
-        while (i < 50000) {
-            int minCut = 0;
+        /* must run a sufficient number of times, to maximize the odds of finding the minimum cut */
+        while (i < NUMBER_ITERATIONS_ALGORITHM) {
+            int currentCut = 0;
             initInputReader();
             MutableNetwork<String, EdgeType> graph = buildGraph();
-            minCut = findMinimumCut(graph);
-            if (minCut < smallestCutFound)
-                smallestCutFound = minCut;
+            currentCut = findMinimumCut(graph);
+            if (currentCut < smallestCutFound)
+                smallestCutFound = currentCut;
 
-            System.out.println(i + " >>>" + minCut);
+            System.out.println(i + " >>>" + currentCut);
             i++;
         }
 
