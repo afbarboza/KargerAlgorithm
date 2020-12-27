@@ -34,7 +34,7 @@ while (number_of_nodes > 2) {
 ```
 ### Implementation Details
 
-Since we are not worried about [how to implement graphs](https://www.geeksforgeeks.org/graph-and-its-representations/) but instead only interested in some operations over graphs, this implementation use [Mutable Networks](https://github.com/google/guava/wiki/GraphsExplained#network) from [Guava](https://github.com/google/guava/wiki) to work with multigraphs. Also, notice that Karger Algorithm is nested inside a main loop which looks like this:
+Since we are not worried about [how to implement graphs](https://www.geeksforgeeks.org/graph-and-its-representations/) but instead only interested in some operations over graphs, this implementation use [Mutable Networks](https://github.com/google/guava/wiki/GraphsExplained#network) from [Guava](https://github.com/google/guava/wiki) to work with multigraphs. For reading the input file `input.txt`, please place it in the project root directory. Also, notice that Karger Algorithm is nested inside a main loop which looks like this:
 
 ```
 while (i < 50000) {
