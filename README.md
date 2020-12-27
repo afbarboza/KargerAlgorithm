@@ -1,5 +1,5 @@
 # Karger's Algorithm - General Description
-The Karger's Algorithm is a Monte Carlo method to handle the problem of global minimum cut in a undirected connected graph G = (V, E). It is a randomized algorithm, which means its behavior is defined not only by the input, but also by randomly generated numbers. It was created by PhD David Karger in 1993, at Stanford University.
+The Karger's Algorithm is a Monte Carlo method to handle the problem of global minimum cut in a undirected connected graph `G = (V, E)`. It is a randomized algorithm, which means its behavior is defined not only by the input, but also by randomly generated values. It was created by PhD David Karger in 1993, at Stanford University.
 
 ### The Problem
 Consider the given undirected graph below:
@@ -45,7 +45,12 @@ while (i < 50000) {
 }
 ```
 
-While `50000` could look like some magical number, it is indeed necessary to increase the [probability of success](https://en.wikipedia.org/wiki/Karger%27s_algorithm#Success_probability_of_the_contraction_algorithm) of this randomized algorithm. For our input with n = 200 nodes, the number of executions to minimize the probability of not finding the minimum cut should be:
+While `50000` could look like some magical number, it is indeed necessary to increase the [probability of success](https://en.wikipedia.org/wiki/Karger%27s_algorithm#Success_probability_of_the_contraction_algorithm) of this randomized algorithm. As a matter of fact, the probability of finding the global minimum cut in any iteration is given by
+
+![Prob](./probability.gif?raw=true)
+
+
+For our input with n = 200 nodes, the analysis of this algorithm show us that the number of executions to minimize the probability of not finding the minimum cut should be:
 
 ![Equation](./nbr_executions.gif?raw=true)
 
